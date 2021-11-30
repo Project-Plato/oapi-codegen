@@ -37,7 +37,7 @@ func (a *{{.TypeName}}) UnmarshalJSON(b []byte) error {
         a.AdditionalProperties = make(map[string]{{$addType}})
         for fieldName, fieldBuf := range object {
             var fieldVal {{$addType}}
-            err := json.Unmarshal(fieldBuf, &fieldVal)
+            err = json.Unmarshal(fieldBuf, &fieldVal)
             if err != nil {
                 return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
             }

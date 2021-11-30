@@ -11,7 +11,8 @@ func decodeSpec() ([]byte, error) {
     if err != nil {
         return nil, fmt.Errorf("error base64 decoding spec: %s", err)
     }
-    zr, err := gzip.NewReader(bytes.NewReader(zipped))
+    var zr *gzip.Reader
+    zr, err = gzip.NewReader(bytes.NewReader(zipped))
     if err != nil {
         return nil, fmt.Errorf("error decompressing spec: %s", err)
     }
