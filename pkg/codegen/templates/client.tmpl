@@ -96,7 +96,7 @@ func (c *Client) {{$opid}}{{if .HasBody}}WithBody{{end}}(ctx context.Context{{ge
         return nil, err
     }
     req = req.WithContext(ctx)
-    if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+    if err = c.applyEditors(ctx, req, reqEditors); err != nil {
         return nil, err
     }
     return c.Client.Do(req)
@@ -109,7 +109,7 @@ func (c *Client) {{$opid}}{{.Suffix}}(ctx context.Context{{genParamArgs $pathPar
         return nil, err
     }
     req = req.WithContext(ctx)
-    if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+    if err = c.applyEditors(ctx, req, reqEditors); err != nil {
         return nil, err
     }
     return c.Client.Do(req)
@@ -161,7 +161,8 @@ func New{{$opid}}Request{{if .HasBody}}WithBody{{end}}(server string{{genParamAr
     }
     {{end}}
 {{end}}
-    serverURL, err := url.Parse(server)
+    var serverURL *url.URL
+    serverURL, err = url.Parse(server)
     if err != nil {
         return nil, err
     }
@@ -171,20 +172,25 @@ func New{{$opid}}Request{{if .HasBody}}WithBody{{end}}(server string{{genParamAr
         operationPath = "." + operationPath
     }
 
-    queryURL, err := serverURL.Parse(operationPath)
+    var queryURL *url.URL
+    queryURL, err = serverURL.Parse(operationPath)
     if err != nil {
         return nil, err
     }
 
 {{if .QueryParams}}
     queryValues := queryURL.Query()
+    var queryFrag string
+    var parsed url.Values
+
 {{range $paramIdx, $param := .QueryParams}}
     {{if not .Required}} if params.{{.GoName}} != nil { {{end}}
     {{if .IsPassThrough}}
     queryValues.Add("{{.ParamName}}", {{if not .Required}}*{{end}}params.{{.GoName}})
     {{end}}
     {{if .IsJson}}
-    if queryParamBuf, err := json.Marshal({{if not .Required}}*{{end}}params.{{.GoName}}); err != nil {
+    var queryParamBuf []byte
+    if queryParamBuf, err = json.Marshal({{if not .Required}}*{{end}}params.{{.GoName}}); err != nil {
         return nil, err
     } else {
         queryValues.Add("{{.ParamName}}", string(queryParamBuf))
@@ -192,9 +198,9 @@ func New{{$opid}}Request{{if .HasBody}}WithBody{{end}}(server string{{genParamAr
 
     {{end}}
     {{if .IsStyled}}
-    if queryFrag, err := runtime.StyleParamWithLocation("{{.Style}}", {{.Explode}}, "{{.ParamName}}", runtime.ParamLocationQuery, {{if not .Required}}*{{end}}params.{{.GoName}}); err != nil {
+    if queryFrag, err = runtime.StyleParamWithLocation("{{.Style}}", {{.Explode}}, "{{.ParamName}}", runtime.ParamLocationQuery, {{if not .Required}}*{{end}}params.{{.GoName}}); err != nil {
         return nil, err
-    } else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+    } else if parsed, err = url.ParseQuery(queryFrag); err != nil {
        return nil, err
     } else {
        for k, v := range parsed {
@@ -208,7 +214,8 @@ func New{{$opid}}Request{{if .HasBody}}WithBody{{end}}(server string{{genParamAr
 {{end}}
     queryURL.RawQuery = queryValues.Encode()
 {{end}}{{/* if .QueryParams */}}
-    req, err := http.NewRequest("{{.Method}}", queryURL.String(), {{if .HasBody}}body{{else}}nil{{end}})
+    var req *http.Request
+    req, err = http.NewRequest("{{.Method}}", queryURL.String(), {{if .HasBody}}body{{else}}nil{{end}})
     if err != nil {
         return nil, err
     }

@@ -112,7 +112,7 @@ func (siw *ServerInterfaceWrapper) {{$opid}}(w http.ResponseWriter, r *http.Requ
           params.{{.GoName}} = {{if not .Required}}&{{end}}{{.GoName}}
 
         } {{if .Required}}else {
-            err := fmt.Errorf("Header parameter {{.ParamName}} is required, but not found")
+            err = fmt.Errorf("Header parameter {{.ParamName}} is required, but not found")
             siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "{{.ParamName}}", Err: err})
             return
         }{{end}}
@@ -132,7 +132,7 @@ func (siw *ServerInterfaceWrapper) {{$opid}}(w http.ResponseWriter, r *http.Requ
       {{- if .IsJson}}
         var value {{.TypeDef}}
         var decoded string
-        decoded, err := url.QueryUnescape(cookie.Value)
+        decoded, err = url.QueryUnescape(cookie.Value)
         if err != nil {
           err = fmt.Errorf("Error unescaping cookie parameter '{{.ParamName}}'")
           siw.ErrorHandlerFunc(w, r, &UnescapedCookieParamError{ParamName: "{{.ParamName}}", Err: err})
