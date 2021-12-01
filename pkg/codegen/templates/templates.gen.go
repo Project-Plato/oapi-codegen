@@ -41,7 +41,7 @@ func (a *{{.TypeName}}) UnmarshalJSON(b []byte) error {
         a.AdditionalProperties = make(map[string]{{$addType}})
         for fieldName, fieldBuf := range object {
             var fieldVal {{$addType}}
-            err := json.Unmarshal(fieldBuf, &fieldVal)
+            err = json.Unmarshal(fieldBuf, &fieldVal)
             if err != nil {
                 return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
             }
@@ -246,7 +246,7 @@ func (siw *ServerInterfaceWrapper) {{$opid}}(w http.ResponseWriter, r *http.Requ
           params.{{.GoName}} = {{if not .Required}}&{{end}}{{.GoName}}
 
         } {{if .Required}}else {
-            err := fmt.Errorf("Header parameter {{.ParamName}} is required, but not found")
+            err = fmt.Errorf("Header parameter {{.ParamName}} is required, but not found")
             siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "{{.ParamName}}", Err: err})
             return
         }{{end}}
@@ -266,7 +266,7 @@ func (siw *ServerInterfaceWrapper) {{$opid}}(w http.ResponseWriter, r *http.Requ
       {{- if .IsJson}}
         var value {{.TypeDef}}
         var decoded string
-        decoded, err := url.QueryUnescape(cookie.Value)
+        decoded, err = url.QueryUnescape(cookie.Value)
         if err != nil {
           err = fmt.Errorf("Error unescaping cookie parameter '{{.ParamName}}'")
           siw.ErrorHandlerFunc(w, r, &UnescapedCookieParamError{ParamName: "{{.ParamName}}", Err: err})
@@ -597,7 +597,7 @@ func (c *Client) {{$opid}}{{if .HasBody}}WithBody{{end}}(ctx context.Context{{ge
         return nil, err
     }
     req = req.WithContext(ctx)
-    if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+    if err = c.applyEditors(ctx, req, reqEditors); err != nil {
         return nil, err
     }
     return c.Client.Do(req)
@@ -610,7 +610,7 @@ func (c *Client) {{$opid}}{{.Suffix}}(ctx context.Context{{genParamArgs $pathPar
         return nil, err
     }
     req = req.WithContext(ctx)
-    if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+    if err = c.applyEditors(ctx, req, reqEditors); err != nil {
         return nil, err
     }
     return c.Client.Do(req)
@@ -629,6 +629,7 @@ func (c *Client) {{$opid}}{{.Suffix}}(ctx context.Context{{genParamArgs $pathPar
 // New{{$opid}}Request{{.Suffix}} calls the generic {{$opid}} builder with {{.ContentType}} body
 func New{{$opid}}Request{{.Suffix}}(server string{{genParamArgs $pathParams}}{{if $hasParams}}, params *{{$opid}}Params{{end}}, body {{$opid}}{{.NameTag}}RequestBody) (*http.Request, error) {
     var bodyReader io.Reader
+    runtime.Translate(&body)
     buf, err := json.Marshal(body)
     if err != nil {
         return nil, err
@@ -661,7 +662,8 @@ func New{{$opid}}Request{{if .HasBody}}WithBody{{end}}(server string{{genParamAr
     }
     {{end}}
 {{end}}
-    serverURL, err := url.Parse(server)
+    var serverURL *url.URL
+    serverURL, err = url.Parse(server)
     if err != nil {
         return nil, err
     }
@@ -671,20 +673,25 @@ func New{{$opid}}Request{{if .HasBody}}WithBody{{end}}(server string{{genParamAr
         operationPath = "." + operationPath
     }
 
-    queryURL, err := serverURL.Parse(operationPath)
+    var queryURL *url.URL
+    queryURL, err = serverURL.Parse(operationPath)
     if err != nil {
         return nil, err
     }
 
 {{if .QueryParams}}
     queryValues := queryURL.Query()
+    var queryFrag string
+    var parsed url.Values
+
 {{range $paramIdx, $param := .QueryParams}}
     {{if not .Required}} if params.{{.GoName}} != nil { {{end}}
     {{if .IsPassThrough}}
     queryValues.Add("{{.ParamName}}", {{if not .Required}}*{{end}}params.{{.GoName}})
     {{end}}
     {{if .IsJson}}
-    if queryParamBuf, err := json.Marshal({{if not .Required}}*{{end}}params.{{.GoName}}); err != nil {
+    var queryParamBuf []byte
+    if queryParamBuf, err = json.Marshal({{if not .Required}}*{{end}}params.{{.GoName}}); err != nil {
         return nil, err
     } else {
         queryValues.Add("{{.ParamName}}", string(queryParamBuf))
@@ -692,9 +699,9 @@ func New{{$opid}}Request{{if .HasBody}}WithBody{{end}}(server string{{genParamAr
 
     {{end}}
     {{if .IsStyled}}
-    if queryFrag, err := runtime.StyleParamWithLocation("{{.Style}}", {{.Explode}}, "{{.ParamName}}", runtime.ParamLocationQuery, {{if not .Required}}*{{end}}params.{{.GoName}}); err != nil {
+    if queryFrag, err = runtime.StyleParamWithLocation("{{.Style}}", {{.Explode}}, "{{.ParamName}}", runtime.ParamLocationQuery, {{if not .Required}}*{{end}}params.{{.GoName}}); err != nil {
         return nil, err
-    } else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+    } else if parsed, err = url.ParseQuery(queryFrag); err != nil {
        return nil, err
     } else {
        for k, v := range parsed {
@@ -708,7 +715,8 @@ func New{{$opid}}Request{{if .HasBody}}WithBody{{end}}(server string{{genParamAr
 {{end}}
     queryURL.RawQuery = queryValues.Encode()
 {{end}}{{/* if .QueryParams */}}
-    req, err := http.NewRequest("{{.Method}}", queryURL.String(), {{if .HasBody}}body{{else}}nil{{end}})
+    var req *http.Request
+    req, err = http.NewRequest("{{.Method}}", queryURL.String(), {{if .HasBody}}body{{else}}nil{{end}})
     if err != nil {
         return nil, err
     }
@@ -806,10 +814,13 @@ const (
 type ServerInterface interface {
 {{range .}}{{.SummaryAsComment }}
 // ({{.Method}} {{.Path}})
-{{.OperationId}}(ctx echo.Context{{genParamArgs .PathParams}}{{if .RequiresParamObject}}, params {{.OperationId}}Params{{end}}) error
+{{.OperationId}}(ctx {{.OperationId}}Context{{genParamArgs .PathParams}}{{if .RequiresParamObject}}, params {{.OperationId}}Params{{end}}) error
 {{end}}
 }
-`,
+
+{{ range .}}
+{{ genOperationContext . }}
+{{ end }}`,
 	"echo-register.tmpl": `
 
 // This is a simple interface which specifies echo.Route addition functions which
@@ -837,16 +848,22 @@ func RegisterHandlers(router EchoRouter, si ServerInterface) {
 func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL string) {
 {{if .}}
     wrapper := ServerInterfaceWrapper{
-        Handler: si,
+        Handler: func(echo.Context) ServerInterface {
+            return si
+        },
     }
 {{end}}
-{{range .}}router.{{.Method}}(baseURL + "{{.Path | swaggerUriToEchoUri}}", wrapper.{{.OperationId}})
+{{range .}}router.{{.Method}}(path.Join(baseURL, "{{.Path | swaggerUriToEchoUri}}"), wrapper.{{.OperationId}})
 {{end}}
 }
-`,
+
+func (wrapper ServerInterfaceWrapper) RegisterHandlers(router EchoRouter, baseURL string) {
+{{range .}}router.{{.Method}}(path.Join(baseURL, "{{.Path | swaggerUriToEchoUri}}"), wrapper.{{.OperationId}})
+{{end}}
+}`,
 	"echo-wrappers.tmpl": `// ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
-    Handler ServerInterface
+    Handler func(echo.Context) ServerInterface
 }
 
 {{range .}}{{$opid := .OperationId}}// {{$opid}} converts echo context to params.
@@ -934,15 +951,18 @@ func (w *ServerInterfaceWrapper) {{.OperationId}} (ctx echo.Context) error {
 {{end}}
 {{end}}
 
+{{if .CookieParams}}
+    var cookie *http.Cookie
+
 {{range .CookieParams}}
-    if cookie, err := ctx.Cookie("{{.ParamName}}"); err == nil {
+    if cookie, err = ctx.Cookie("{{.ParamName}}"); err == nil {
     {{if .IsPassThrough}}
     params.{{.GoName}} = {{if not .Required}}&{{end}}cookie.Value
     {{end}}
     {{if .IsJson}}
     var value {{.TypeDef}}
     var decoded string
-    decoded, err := url.QueryUnescape(cookie.Value)
+    decoded, err = url.QueryUnescape(cookie.Value)
     if err != nil {
         return echo.NewHTTPError(http.StatusBadRequest, "Error unescaping cookie parameter '{{.ParamName}}'")
     }
@@ -965,10 +985,11 @@ func (w *ServerInterfaceWrapper) {{.OperationId}} (ctx echo.Context) error {
     }{{end}}
 
 {{end}}{{/* .CookieParams */}}
+{{end}}
 
 {{end}}{{/* .RequiresParamObject */}}
     // Invoke the callback with all the unmarshalled arguments
-    err = w.Handler.{{.OperationId}}(ctx{{genParamNames .PathParams}}{{if .RequiresParamObject}}, params{{end}})
+    err = w.Handler(ctx).{{.OperationId}}({{$opid}}Context{ctx}{{genParamNames .PathParams}}{{if .RequiresParamObject}}, params{{end}})
     return err
 }
 {{end}}
@@ -1137,7 +1158,7 @@ func (siw *ServerInterfaceWrapper) {{$opid}}(c *gin.Context) {
       {{- if .IsJson}}
         var value {{.TypeDef}}
         var decoded string
-        decoded, err := url.QueryUnescape(cookie.Value)
+        decoded, err = url.QueryUnescape(cookie.Value)
         if err != nil {
           c.JSON(http.StatusBadRequest, gin.H{"msg": "Error unescaping cookie parameter '{{.ParamName}}'"})
           return
@@ -1192,7 +1213,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/xml"
-	"errors"
+	"github.com/pkg/errors"
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io"
@@ -1226,7 +1247,8 @@ func decodeSpec() ([]byte, error) {
     if err != nil {
         return nil, fmt.Errorf("error base64 decoding spec: %s", err)
     }
-    zr, err := gzip.NewReader(bytes.NewReader(zipped))
+    var zr *gzip.Reader
+    zr, err = gzip.NewReader(bytes.NewReader(zipped))
     if err != nil {
         return nil, fmt.Errorf("error decompressing spec: %s", err)
     }
