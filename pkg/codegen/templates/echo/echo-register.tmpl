@@ -25,9 +25,16 @@ func RegisterHandlers(router EchoRouter, si ServerInterface) {
 func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL string) {
 {{if .}}
     wrapper := ServerInterfaceWrapper{
-        Handler: si,
+        Handler: func(echo.Context) ServerInterface {
+            return si
+        },
     }
 {{end}}
-{{range .}}router.{{.Method}}(baseURL + "{{.Path | swaggerUriToEchoUri}}", wrapper.{{.OperationId}})
+{{range .}}router.{{.Method}}(path.Join(baseURL, "{{.Path | swaggerUriToEchoUri}}"), wrapper.{{.OperationId}})
+{{end}}
+}
+
+func (wrapper ServerInterfaceWrapper) RegisterHandlers(router EchoRouter, baseURL string) {
+{{range .}}router.{{.Method}}(path.Join(baseURL, "{{.Path | swaggerUriToEchoUri}}"), wrapper.{{.OperationId}})
 {{end}}
 }
