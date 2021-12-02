@@ -16,7 +16,6 @@ package codegen
 import (
 	"bytes"
 	"fmt"
-	"errors"
 	"os"
 	"strings"
 	"text/template"
@@ -128,7 +127,7 @@ func genResponseHelpers(op *OperationDefinition) string {
 				if contentType.Schema != nil {
 					responseSchema, err := GenerateGoSchema(contentType.Schema, []string{responseName})
 					if err != nil {
-						err = errors.Errorf("Unable to determine Go type for %s.%s %w", op.OperationId, contentTypeName, err)
+						err = fmt.Errorf("Unable to determine Go type for %s.%s %w", op.OperationId, contentTypeName, err)
 						panic(err)
 					}
 
