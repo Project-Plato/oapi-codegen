@@ -388,7 +388,7 @@ func resolveType(schema *openapi3.Schema, path []string, outSchema *Schema) erro
 		case "date":
 			outSchema.GoType = "openapi_types.Date"
 		case "date-time":
-			outSchema.GoType = "time.Time"
+			outSchema.RefType = "time.Time"
 		case "json":
 			outSchema.GoType = "json.RawMessage"
 			outSchema.SkipOptionalPointer = true
