@@ -57,6 +57,13 @@ func translateRecursive(copy, original reflect.Value) (err error) {
 	case reflect.Interface:
 		// Get rid of the wrapping interface
 		originalValue := original.Elem()
+
+		// Necessary for handling nil interfaces
+		// https://gist.github.com/hvoecking/10772475?permalink_comment_id=3998076#gistcomment-3998076
+		if !originalValue.IsValid() {
+			return nil
+		}
+
 		// Create a new object. Now new gives us a pointer, but we want the value it
 		// points to, so we have to call Elem() to unwrap it
 		copyValue := reflect.New(originalValue.Type()).Elem()
