@@ -130,7 +130,7 @@ func (siw *ServerInterfaceWrapper) {{$opid}}(c *gin.Context) {
       {{- if .IsJson}}
         var value {{.TypeDef}}
         var decoded string
-        decoded, err := url.QueryUnescape(cookie.Value)
+        decoded, err = url.QueryUnescape(cookie.Value)
         if err != nil {
           c.JSON(http.StatusBadRequest, gin.H{"msg": "Error unescaping cookie parameter '{{.ParamName}}'"})
           return

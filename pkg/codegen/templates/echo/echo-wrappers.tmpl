@@ -1,6 +1,6 @@
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
-    Handler ServerInterface
+    Handler func(echo.Context) ServerInterface
 }
 
 {{range .}}{{$opid := .OperationId}}// {{$opid}} converts echo context to params.
@@ -88,15 +88,18 @@ func (w *ServerInterfaceWrapper) {{.OperationId}} (ctx echo.Context) error {
 {{end}}
 {{end}}
 
+{{if .CookieParams}}
+    var cookie *http.Cookie
+
 {{range .CookieParams}}
-    if cookie, err := ctx.Cookie("{{.ParamName}}"); err == nil {
+    if cookie, err = ctx.Cookie("{{.ParamName}}"); err == nil {
     {{if .IsPassThrough}}
     params.{{.GoName}} = {{if not .Required}}&{{end}}cookie.Value
     {{end}}
     {{if .IsJson}}
     var value {{.TypeDef}}
     var decoded string
-    decoded, err := url.QueryUnescape(cookie.Value)
+    decoded, err = url.QueryUnescape(cookie.Value)
     if err != nil {
         return echo.NewHTTPError(http.StatusBadRequest, "Error unescaping cookie parameter '{{.ParamName}}'")
     }
@@ -119,10 +122,11 @@ func (w *ServerInterfaceWrapper) {{.OperationId}} (ctx echo.Context) error {
     }{{end}}
 
 {{end}}{{/* .CookieParams */}}
+{{end}}
 
 {{end}}{{/* .RequiresParamObject */}}
     // Invoke the callback with all the unmarshalled arguments
-    err = w.Handler.{{.OperationId}}(ctx{{genParamNames .PathParams}}{{if .RequiresParamObject}}, params{{end}})
+    err = w.Handler(ctx).{{.OperationId}}({{$opid}}Context{ctx}{{genParamNames .PathParams}}{{if .RequiresParamObject}}, params{{end}})
     return err
 }
 {{end}}
