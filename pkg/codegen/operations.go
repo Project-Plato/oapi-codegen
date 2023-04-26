@@ -54,8 +54,11 @@ func (pd *ParameterDefinition) JsonTag() string {
 func (pd *ParameterDefinition) IsJson() bool {
 	p := pd.Spec
 	if len(p.Content) == 1 {
-		_, found := p.Content["application/json"]
-		return found
+		for k := range p.Content {
+			if IsMediaTypeJson(k) {
+				return true
+			}
+		}
 	}
 	return false
 }
@@ -508,8 +511,8 @@ func GenerateBodyDefinitions(operationID string, bodyOrRef *openapi3.RequestBody
 		var tag string
 		var defaultBody bool
 
-		switch contentType {
-		case "application/json":
+		switch {
+		case IsMediaTypeJson(contentType):
 			tag = "JSON"
 			defaultBody = true
 		default:
