@@ -30,7 +30,7 @@ const (
 )
 
 var (
-	contentTypesJSON = []string{echo.MIMEApplicationJSON, "text/x-json"}
+	contentTypesJSON = []string{echo.MIMEApplicationJSON, "text/x-json", "application/didcomm-plain+json"}
 	contentTypesYAML = []string{"application/yaml", "application/x-yaml", "text/yaml", "text/x-yaml"}
 	contentTypesXML  = []string{echo.MIMEApplicationXML, echo.MIMETextXML}
 )
