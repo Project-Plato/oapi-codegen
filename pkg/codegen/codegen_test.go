@@ -153,6 +153,16 @@ type GetTestByNameResponse struct {
 	JSONDefault  *Error
 }`)
 
+	// Check that types for the application/didcomm-plaintext+json were generated.
+	assert.Contains(t, code, `
+type CreateTestByNameResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]Test
+}`)
+	assert.Contains(t, code, "type CreateTestByNameJSONBody Test")
+	assert.Contains(t, code, "type CreateTestByNameJSONRequestBody CreateTestByNameJSONBody")
+
 	// Check that the helper methods are generated correctly:
 	assert.Contains(t, code, "func (r GetTestByNameResponse) Status() string {")
 	assert.Contains(t, code, "func (r GetTestByNameResponse) StatusCode() int {")
@@ -163,7 +173,7 @@ type GetTestByNameResponse struct {
 	assert.Contains(t, code, "Top *int `json:\"$top,omitempty\"`")
 	assert.Contains(t, code, "func (c *Client) GetTestByName(ctx context.Context, name string, params *GetTestByNameParams, reqEditors ...RequestEditorFn) (*http.Response, error) {")
 	assert.Contains(t, code, "func (c *ClientWithResponses) GetTestByNameWithResponse(ctx context.Context, name string, params *GetTestByNameParams, reqEditors ...RequestEditorFn) (*GetTestByNameResponse, error) {")
-	assert.Contains(t, code, "DeadSince *time.Time    `json:\"dead_since,omitempty\" tag1:\"value1\" tag2:\"value2\"`")
+	assert.Contains(t, code, "DeadSince *time.Time     `json:\"dead_since,omitempty\" tag1:\"value1\" tag2:\"value2\"`")
 
 	// Make sure the generated code is valid:
 	linter := new(lint.Linter)
@@ -186,17 +196,36 @@ servers:
 
 paths:
   /test/{name}:
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+      - test
+      summary: Get test
+      operationId: createTestByName
+      requestBody:
+        content:
+          application/didcomm-plain+json:
+            schema:
+              $ref: '#/components/schemas/Test'
+      responses:
+        200:
+          content:
+            application/didcomm-plain+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Test'
     get:
       tags:
       - test
       summary: Get test
       operationId: getTestByName
       parameters:
-      - name: name
-        in: path
-        required: true
-        schema:
-          type: string
       - name: $top
         in: query
         required: false
@@ -211,7 +240,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Test'
-            application/json:
+            application/didcomm-plain+json:
               schema:
                 type: array
                 items:

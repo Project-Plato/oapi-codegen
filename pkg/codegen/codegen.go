@@ -433,7 +433,7 @@ func GenerateTypesForResponses(t *template.Template, responses openapi3.Response
 		// handle application/json media types here. Other responses should
 		// simply be specified as strings or byte arrays.
 		response := responseOrRef.Value
-		jsonResponse, found := response.Content["application/json"]
+		jsonResponse, found := GetJsonMediaType(response.Content)
 		if found {
 			goType, err := GenerateGoSchema(jsonResponse.Schema, []string{responseName})
 			if err != nil {
@@ -471,7 +471,7 @@ func GenerateTypesForRequestBodies(t *template.Template, bodies map[string]*open
 		// As for responses, we will only generate Go code for JSON bodies,
 		// the other body formats are up to the user.
 		response := bodyOrRef.Value
-		jsonBody, found := response.Content["application/json"]
+		jsonBody, found := GetJsonMediaType(response.Content)
 		if found {
 			goType, err := GenerateGoSchema(jsonBody.Schema, []string{bodyName})
 			if err != nil {

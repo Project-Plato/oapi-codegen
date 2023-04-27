@@ -100,12 +100,13 @@ type Constants struct {
 //
 // Let's use this example schema:
 // components:
-//  schemas:
-//    Person:
-//      type: object
-//      properties:
-//      name:
-//        type: string
+//
+//	schemas:
+//	  Person:
+//	    type: object
+//	    properties:
+//	    name:
+//	      type: string
 type TypeDefinition struct {
 	// The name of the type, eg, type <...> Person
 	TypeName string
@@ -614,7 +615,7 @@ func paramToGoType(param *openapi3.Parameter, path []string) (Schema, error) {
 	}
 
 	// Otherwise, look for application/json in there
-	mt, found := param.Content["application/json"]
+	mt, found := GetJsonMediaType(param.Content)
 	if !found {
 		// If we don't have json, it's a string
 		return Schema{
