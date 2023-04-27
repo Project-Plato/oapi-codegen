@@ -616,7 +616,13 @@ func EscapePathElements(path string) string {
 
 // IsMediaTypeJson checks if the media type provided falls into the json kind.
 func IsMediaTypeJson(mediaType string) bool {
-	return mediaType == "application/json" || strings.HasSuffix(mediaType, "+json")
+	for _, contentType := range contentTypesJSON {
+		if mediaType == contentType {
+			return true
+		}
+	}
+
+	return false
 }
 
 func GetJsonMediaType(content openapi3.Content) (*openapi3.MediaType, bool) {
