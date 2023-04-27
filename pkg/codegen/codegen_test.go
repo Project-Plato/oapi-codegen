@@ -153,6 +153,16 @@ type GetTestByNameResponse struct {
 	JSONDefault  *Error
 }`)
 
+	// Check that types for the application/didcomm-plaintext+json were generated.
+	assert.Contains(t, code, `
+type CreateTestByNameResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]Test
+}`)
+	assert.Contains(t, code, "type CreateTestByNameJSONBody Test")
+	assert.Contains(t, code, "type CreateTestByNameJSONRequestBody CreateTestByNameJSONBody")
+
 	// Check that the helper methods are generated correctly:
 	assert.Contains(t, code, "func (r GetTestByNameResponse) Status() string {")
 	assert.Contains(t, code, "func (r GetTestByNameResponse) StatusCode() int {")
