@@ -186,17 +186,36 @@ servers:
 
 paths:
   /test/{name}:
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+      - test
+      summary: Get test
+      operationId: createTestByName
+      requestBody:
+        content:
+          application/didcomm-plain+json:
+            schema:
+              $ref: '#/components/schemas/Test'
+      responses:
+        200:
+          content:
+            application/didcomm-plain+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Test'
     get:
       tags:
       - test
       summary: Get test
       operationId: getTestByName
       parameters:
-      - name: name
-        in: path
-        required: true
-        schema:
-          type: string
       - name: $top
         in: query
         required: false
