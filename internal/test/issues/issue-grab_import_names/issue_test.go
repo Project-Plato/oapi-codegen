@@ -3,9 +3,9 @@ package grab_import_names
 import (
 	"testing"
 
-	"github.com/deepmap/oapi-codegen/pkg/codegen"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/stretchr/testify/require"
+	"github.com/truvity/oapi-codegen/pkg/codegen"
 )
 
 func TestLineComments(t *testing.T) {

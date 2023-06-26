@@ -1,4 +1,4 @@
-module github.com/deepmap/oapi-codegen
+module github.com/truvity/oapi-codegen
 
 require (
 	github.com/cyberdelia/templates v0.0.0-20141128023046-ca7fffd4298c
@@ -25,7 +25,5 @@ require (
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )
-
-replace github.com/original/repo => github.com/your-username/repo v1.9.0-truvity.3
 
 go 1.16
