@@ -26,4 +26,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
+replace github.com/original/repo => github.com/your-username/repo v1.9.0-truvity.3
+
 go 1.16
