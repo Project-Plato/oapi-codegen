@@ -1224,8 +1224,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deepmap/oapi-codegen/pkg/runtime"
-	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
+	"github.com/truvity/oapi-codegen/pkg/runtime"
+	openapi_types "github.com/truvity/oapi-codegen/pkg/types"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
 	"github.com/labstack/echo/v4"
@@ -1364,4 +1364,3 @@ func Parse(t *template.Template) (*template.Template, error) {
 	}
 	return t, nil
 }
-
